@@ -1,7 +1,7 @@
 #include "KayGame.h"
 #include "KayUtils.h"
 
-KayGame::KayGame(QWidget *parent) : QWidget(parent), Game(), isMouseLeftPressed(false), mMouseX(0), mMouseY(0)
+KayGame::KayGame(QWidget *parent) : QWidget(parent), Game(), isMouseLeftPressed(false), mMouseX(0), mMouseY(0), mPitch(0), mTurn(0)
 {
 	initializeWidgeAttribute();
 	initializeGameAttribute();
@@ -46,8 +46,9 @@ void KayGame::initialize()
 	cameraNode->setCamera(mCamera);
 	cameraNode->setTranslation(0.0f, 100.0f, 0.0f);
 
+	mTurn = MATH_PIOVER4;
 	Quaternion q;
-	Quaternion::createFromAxisAngle(Vector3::unitX(), 30, &q);
+	Quaternion::createFromEuler(mTurn, 0, 0, &q);
 	cameraNode->setRotation(q);
 
 
@@ -98,16 +99,11 @@ void KayGame::resizeEvent(unsigned int width, unsigned int height)
 
 void KayGame::handleWheelEvent(QWheelEvent* evt)
 {
-	Camera *camera = mCamera;
-	Node *node = camera->getNode();
-	const Vector3 cameraPos = node->getBoundingSphere().center;
-	Model *model = mGridModel;
-	Node * modelNode = model->getNode();
-	Vector3 modelPos = modelNode->getBoundingSphere().center;
-	float radius = modelNode->getBoundingSphere().radius;
+	const Vector3 cameraPos = mCamera->getNode()->getTranslationWorld();
+	Vector3 modelPos = mGridModel->getNode()->getTranslationWorld();
 	Vector3 dist = modelPos - cameraPos;
 	float leans = dist.length();
-	node->translate(evt->delta() * 0.0005f * dist);
+	mCamera->getNode()->translate(evt->delta() * 0.0005f * dist);
 }
 
 void KayGame::handleMousePress(QMoveEvent* evt)
@@ -142,16 +138,17 @@ void KayGame::handleMouseMove(QMoveEvent* evt)
 			const int oldy = mPressPos.y();
 			mPressPos = QCursor::pos();
 
-			float yAngle = -(mPressPos.x() - oldx) * 1.2f * 0.005f;
-			float xAngle = -(mPressPos.y() - oldy) * 2.5f * 0.005f;
+			float yAngle = -(mPressPos.x() - oldx) * 0.0012f;
+			float xAngle = -(mPressPos.y() - oldy) * 0.0025f;
 
 			mTurn += yAngle;
 			mPitch += xAngle;
+			mPitch = mPitch > MATH_PIOVER2 ? MATH_PIOVER2 : (mPitch < -MATH_PIOVER2 ? -MATH_PIOVER2 : mPitch);
 
+			Quaternion q;
+			Quaternion::createFromEuler(mTurn, mPitch, 0, &q);
+			node->setRotation(q);
 			node->setTranslation(modelPos);
-			node->setRotation(Quaternion::identity());
-			node->rotateY(mTurn);
-			node->rotateX(mPitch);
 
 			Vector3 direction = node->getForwardVectorWorld();
 			direction.normalize();
