@@ -85,6 +85,8 @@ void *KayGame::qt_metacast(const char *_clname)
         return static_cast<void*>(this);
     if (!strcmp(_clname, "Game"))
         return static_cast< Game*>(this);
+    if (!strcmp(_clname, "Camera::Listener"))
+        return static_cast< Camera::Listener*>(this);
     return QWidget::qt_metacast(_clname);
 }
 

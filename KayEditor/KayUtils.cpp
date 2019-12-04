@@ -14,16 +14,16 @@ Material* KayUtils::CreateDefaultMaterial()
 	return material;
 }
 
-Model* KayUtils::CreateGridModel(unsigned int rows, unsigned int cols)
+Model* KayUtils::CreateGridModel(unsigned int rows)
 {
 	const float y = 0.0f;
-	const float x1 = -2500.0f;
-	const float z1 = -2500.0f;
-	const float x2 = 2500.0f;
-	const float z2 = 2500.0f;
+	const float x1 = -25000.0f;
+	const float z1 = -25000.0f;
+	const float x2 = 25000.0f;
+	const float z2 = 25000.0f;
 	float xDelta = (x2 - x1) / rows;
-	float zDelta = (z2 - z1) / cols;
-	unsigned int pointCount = rows * cols * 2;
+	float zDelta = (z2 - z1) / rows;
+	unsigned int pointCount = rows * rows * 2;
 	Vector3 *points = (Vector3 *)malloc(sizeof(Vector3) * pointCount);
 	unsigned int index = 0;
 	for (float r = x1; r < x2; r += xDelta)

@@ -1,9 +1,8 @@
 ﻿  Moc'ing KayGame.h...
   Moc'ing KayMainWindow.h...
-  KayGame.cpp
+  KayMain.cpp
   moc_KayMainWindow.cpp
   moc_KayGame.cpp
   Generating Code...
-     Creating library F:\Gameplay3D\GamePlay-master\x64\Debug\KayEditor.lib and object F:\Gameplay3D\GamePlay-master\x64\Debug\KayEditor.exp
   KayEditor.vcxproj -> F:\Gameplay3D\GamePlay-master\x64\Debug\KayEditor.exe
   KayEditor.vcxproj -> F:\Gameplay3D\GamePlay-master\x64\Debug\KayEditor.pdb (Partial PDB)

@@ -2,7 +2,7 @@
 
 #include "ConstantDefine.h"
 
-class KayGame : public QWidget, public Game
+class KayGame : public QWidget, public Game, public Camera::Listener
 {
 	Q_OBJECT
 public:
@@ -16,8 +16,15 @@ protected:
 	void update(float elapsedTime);
 
 	void render(float elapsedTime);
+
+	virtual void cameraChanged(Camera* camera);
 public:
+	// Game
 	void Frame();
+	void setTargetNode(Node* node);
+	Node* getTargetNode();
+	void refreshGrid(int level, float alpha) {  } // todo
+	// QWidget
 	bool eventFilter(QObject *obj, QEvent *event);
 private:
 	virtual void resizeEvent(unsigned int width, unsigned int height);
@@ -25,6 +32,8 @@ private:
 	void handleMousePress(QMoveEvent* evt);
 	void handleMouseRelease(QMoveEvent* evt);
 	void handleMouseMove(QMoveEvent* evt);
+	void handleKeyEvent(QKeyEvent* evt, bool isPress);
+	void handleKeyFocusEvent(bool isPress);
 
 	void initializeWidgeAttribute();
 	void initializeGameAttribute();
@@ -33,7 +42,7 @@ private:
 	QPoint mPressPos;
 	int mMouseX;
 	int mMouseY;
-	float mTurn;
+	float mYaw;
 	float mPitch;
 private:
 	Model* mGridModel;
@@ -41,4 +50,9 @@ private:
 	Camera* mCamera;
 	Font* mFont;
 	Platform *mPlatform;
+	Node* mTargetNode;
+
+private:
+	// Debug
+	int mCameraChangedCount;
 };

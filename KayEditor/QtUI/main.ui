@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Gameplay3D</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -31,10 +31,40 @@
    </property>
    <widget class="QMenu" name="menu1">
     <property name="title">
-     <string>gameplay</string>
+     <string>File</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuEditor">
+    <property name="title">
+     <string>Editor</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuAssets">
+    <property name="title">
+     <string>Assets</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuGameObject">
+    <property name="title">
+     <string>GameObject</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuWindow">
+    <property name="title">
+     <string>Window</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
     </property>
    </widget>
    <addaction name="menu1"/>
+   <addaction name="menuEditor"/>
+   <addaction name="menuAssets"/>
+   <addaction name="menuGameObject"/>
+   <addaction name="menuWindow"/>
+   <addaction name="menuHelp"/>
   </widget>
  </widget>
  <customwidgets>
