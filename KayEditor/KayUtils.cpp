@@ -36,7 +36,7 @@ Model* KayUtils::CreateGridModel(unsigned int rows)
 		points[index++] = Vector3(x1, y, c);
 		points[index++] = Vector3(x2, y, c);
 	}
-	Mesh *mesh = Mesh::createLines(points, pointCount);
+	Mesh *mesh = Mesh::createLines(points, pointCount, true);
 	free(points);
 	Model *gridModel = Model::create(mesh);
 	Material *material = CreateDefaultMaterial();

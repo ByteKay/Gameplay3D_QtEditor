@@ -107,7 +107,7 @@ void main()
     if(v_clipDistance < 0.0) discard;
     #endif
  
-    #if defined(LIGHTING)
+#if defined(LIGHTING)
 
     #if defined(VERTEX_COLOR)
 	_baseColor.rgb = v_color;
@@ -118,7 +118,7 @@ void main()
     gl_FragColor.a = _baseColor.a;
     gl_FragColor.rgb = getLitPixel();
     
-    #else
+#else
     
     #if defined(VERTEX_COLOR)
     gl_FragColor.rgb = v_color;
@@ -127,7 +127,7 @@ void main()
     gl_FragColor = u_diffuseColor;
     #endif
     
-    #endif
+#endif
 
 	#if defined(LIGHTMAP)
 	vec4 lightColor = texture2D(u_lightmapTexture, v_texCoord1);

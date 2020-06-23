@@ -6,6 +6,7 @@ KayGame::KayGame(QWidget *parent) : QWidget(parent), Game(), isMouseLeftPressed(
 	initializeWidgeAttribute();
 	initializeGameAttribute();
 	mCameraChangedCount = 0;
+	mCurrentState = KeyMouseState::NONE;
 }
 
 void KayGame::initializeWidgeAttribute()
@@ -101,7 +102,7 @@ Node* KayGame::getTargetNode()
 	{
 		return mTargetNode;
 	}
-	return mGridModel->getNode();
+	return NULL;
 }
 
 void KayGame::resizeEvent(unsigned int width, unsigned int height)
@@ -118,29 +119,62 @@ void KayGame::resizeEvent(unsigned int width, unsigned int height)
 // 可以记录一个状态
 void KayGame::handleKeyEvent(QKeyEvent* evt, bool isPress)
 {
+	ChangeKeyPressedState(evt->key(), isPress);
 	switch (evt->key())
 	{
 	case Qt::Key_F:
 		handleKeyFocusEvent(isPress);
+		break;
+	case Qt::Key_Alt:
+
 		break;
 	default:
 		break;
 	}
 }
 
+void KayGame::ChangeKeyPressedState(int key, bool isPressed)
+{
+	mKeyRecord[key] = isPressed;
+}
+
+bool KayGame::isKeyPressed(int key)
+{
+	if (mKeyRecord.find(key) != mKeyRecord.end())
+	{
+		return mKeyRecord[key];
+	}
+	return false;
+}
+
+void KayGame::ChangeCurrentState()
+{
+	if (mCurrentState != KeyMouseState::NONE)
+	{
+		return;
+	}
+	if (isKeyPressed(Qt::Key_Alt))
+	{
+		if (isKeyPressed(Qt::Key_Control))
+		{
+			mCurrentState = KeyMouseState::CAMERA_MOVE;
+		}
+		else
+		{
+			mCurrentState = KeyMouseState::CAMERA_ROTATE;
+		}
+	}
+}
+
 void KayGame::handleKeyFocusEvent(bool isPress)
 {
-	if (!isPress)
+	Node* node = mGridModel->getNode();
+	if (!isPress && node)
 	{
 		static int times = 5;
-		float radius = getTargetNode()->getBoundingSphere().radius;
+		float radius = node->getBoundingSphere().radius;
 		float distance = times * (radius < 1 ? 1 : radius);
-		Vector3 modelPos = getTargetNode()->getTranslationWorld();
-		mYaw = MATH_PIOVER4;
-		mPitch = -MATH_PIOVER4;
-		Quaternion q;
-		Quaternion::createFromEuler(mYaw, mPitch, 0, &q);
-		mCamera->getNode()->setRotation(q);
+		Vector3 modelPos = node->getTranslationWorld();
 		Vector3 cameraPos = modelPos - distance * mCamera->getNode()->getForwardVectorWorld();
 		mCamera->getNode()->setTranslation(cameraPos);
 	}
@@ -160,43 +194,92 @@ void KayGame::handleMousePress(QMoveEvent* evt)
 void KayGame::handleMouseRelease(QMoveEvent* evt)
 {
 	isMouseLeftPressed = false;
+	mCurrentState = KeyMouseState::NONE;;
+}
+
+void KayGame::moveCamera(QMoveEvent* evt)
+{
+	const int oldx = mPressPos.x();
+	const int oldy = mPressPos.y();
+	mPressPos = QCursor::pos();
+	float x = (mPressPos.x() - oldx) * 0.12f;
+	float y = (mPressPos.y() - oldy) * 0.25f;
+	mCamera->getNode()->translateUp(y);
+	mCamera->getNode()->translateLeft(x);
+}
+
+void KayGame::rotateCamera(QMoveEvent* evt)
+{
+	const int oldx = mPressPos.x();
+	const int oldy = mPressPos.y();
+	mPressPos = QCursor::pos();
+	float yAngle = -(mPressPos.x() - oldx) * 0.0012f;
+	float xAngle = -(mPressPos.y() - oldy) * 0.0025f;
+
+	Node* node = mCamera->getNode();
+	Ray r(node->getTranslationWorld(), node->getForwardVectorWorld());
+	Plane p(Vector3::unitY(), 0);
+	float d = r.intersects(p);
+	if (d > 0)
+	{
+		Vector3 modelPos = r.getOrigin() + r.getDirection() * d;
+		mYaw += yAngle;
+		mPitch += xAngle;
+		mPitch = mPitch > MATH_PIOVER2 ? MATH_PIOVER2 : (mPitch < -MATH_PIOVER2 ? -MATH_PIOVER2 : mPitch);
+		Quaternion q;
+		Quaternion::createFromEuler(mYaw, mPitch, 0, &q);
+		node->setRotation(q);
+		node->setTranslation(modelPos);
+		Vector3 direction = node->getForwardVectorWorld();
+		direction.normalize();
+		direction = direction * (-d);
+		node->translate(direction);
+	}
+	else
+	{
+
+	}
+
 }
 
 void KayGame::handleMouseMove(QMoveEvent* evt)
 {
 	if (isMouseLeftPressed)
 	{
-		Vector3 modelPos = getTargetNode()->getTranslationWorld();
-
-		Node* node = mCamera->getNode();
-		const Vector3 cameraPos = node->getTranslationWorld();
-		Vector3 dist = cameraPos - modelPos;
-		float leans = dist.length();
-		if (leans < 0.001f)
-		{
-			return;
-		}
-
-		const int oldx = mPressPos.x();
-		const int oldy = mPressPos.y();
-		mPressPos = QCursor::pos();
-
-		float yAngle = -(mPressPos.x() - oldx) * 0.0012f;
-		float xAngle = -(mPressPos.y() - oldy) * 0.0025f;
-
-		mYaw += yAngle;
-		mPitch += xAngle;
-		mPitch = mPitch > MATH_PIOVER2 ? MATH_PIOVER2 : (mPitch < -MATH_PIOVER2 ? -MATH_PIOVER2 : mPitch);
-
-		Quaternion q;
-		Quaternion::createFromEuler(mYaw, mPitch, 0, &q);
-		node->setRotation(q);
-		node->setTranslation(modelPos);
-
-		Vector3 direction = node->getForwardVectorWorld();
-		direction.normalize();
-		direction = direction * (-leans);
-		node->translate(direction);
+		ChangeCurrentState();
+	}
+	switch (mCurrentState)
+	{
+	case KayGame::NONE:
+		break;
+	case KayGame::OBJECT_CHOOSE:
+		break;
+	case KayGame::OBJECT_X_CHOOSE:
+		break;
+	case KayGame::OBJECT_Y_CHOOSE:
+		break;
+	case KayGame::OBJECT_Z_CHOOSE:
+		break;
+	case KayGame::OBJECT_XMOVE:
+		break;
+	case KayGame::OBJECT_YMOVE:
+		break;
+	case KayGame::OBJECT_ZMOVE:
+		break;
+	case KayGame::OBJECT_XROTATE:
+		break;
+	case KayGame::OBJECT_YROTATE:
+		break;
+	case KayGame::OBJECT_ZROTATE:
+		break;
+	case KayGame::CAMERA_MOVE:
+		moveCamera(evt);
+		break;
+	case KayGame::CAMERA_ROTATE:
+		rotateCamera(evt);
+		break;
+	default:
+		break;
 	}
 }
 
@@ -216,11 +299,11 @@ bool KayGame::eventFilter(QObject *obj, QEvent *event)
 	case QEvent::MouseButtonPress:
 		handleMousePress((QMoveEvent*)event);
 		break;
-	case QEvent::MouseButtonRelease:
-		handleMouseRelease((QMoveEvent*)event);
-		break;
 	case QEvent::MouseMove:
 		handleMouseMove((QMoveEvent*)event);
+		break;
+	case QEvent::MouseButtonRelease:
+		handleMouseRelease((QMoveEvent*)event);
 		break;
 	case QEvent::Timer:
 		Frame();
@@ -233,7 +316,6 @@ bool KayGame::eventFilter(QObject *obj, QEvent *event)
 	}
 	return true;
 }
-
 
 void KayGame::cameraChanged(Camera* camera)
 {

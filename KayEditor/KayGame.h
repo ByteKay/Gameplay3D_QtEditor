@@ -35,15 +35,42 @@ private:
 	void handleKeyEvent(QKeyEvent* evt, bool isPress);
 	void handleKeyFocusEvent(bool isPress);
 
+	void ChangeCurrentState();
+	void ChangeKeyPressedState(int key, bool isPressed);
+	bool isKeyPressed(int key);
+
+	void moveCamera(QMoveEvent* evt);
+	void rotateCamera(QMoveEvent* evt);
+
 	void initializeWidgeAttribute();
 	void initializeGameAttribute();
 private:
+	enum KeyMouseState
+	{
+		NONE,
+		OBJECT_CHOOSE,
+		OBJECT_X_CHOOSE,
+		OBJECT_Y_CHOOSE,
+		OBJECT_Z_CHOOSE,
+		OBJECT_XMOVE,
+		OBJECT_YMOVE,
+		OBJECT_ZMOVE,
+		OBJECT_XROTATE,
+		OBJECT_YROTATE,
+		OBJECT_ZROTATE,
+
+		CAMERA_MOVE,
+		CAMERA_ROTATE,
+	};
 	bool isMouseLeftPressed;
+	KeyMouseState mCurrentState;
 	QPoint mPressPos;
 	int mMouseX;
 	int mMouseY;
+
 	float mYaw;
 	float mPitch;
+	std::unordered_map<int, bool> mKeyRecord;
 private:
 	Model* mGridModel;
 	Scene* mScene;
